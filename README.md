@@ -356,7 +356,11 @@ graph LR
 - [ ] Publicação
 
 ---
+#CHANGELOG 
 
-## Status Atual
-
-Projeto em desenvolvimento. Documentação e arquitetura definidas. Implementação iniciada pelo backend (NestJS + Prisma), com ambiente de produção planejado em Neon + Supabase + Vercel. Prioridade atual: **MVP 1** (conversa com IA, memória e gamificação).
+Nova seção "MVPs do Produto", dividindo a entrega em:
+MVP 1 — chat com personagens de IA, memória de conversa, gamificação (coins), desbloqueio de personagens e sistema de afiliados.
+MVP 2 — ferramentas para psicólogos: cadastro/perfil profissional, diretório público, relatos, autorização controlada e dashboard de acompanhamento.
+Tabela character_memory no Modelo de Dados, para dar memória de longo prazo aos personagens sem depender apenas do histórico bruto (chat_messages).
+Menção à memória de contexto no Pilar 1 ("Sala de Desabafo com Personagens IA"), na Stack Tecnológica (linha de IA/LLM) e no diagrama de arquitetura (nó CHAT).
+Linha final na seção Status Atual indicando que a prioridade atual é o MVP 1.
