@@ -20,13 +20,36 @@ PSYCHO-LIBERTAIRE é uma plataforma de saúde mental que combina três pilares: 
 ## Os Três Pilares do Produto
 
 ### 1. Sala de Desabafo com Personagens IA
-Cada usuário tem uma sala privada onde pode escolher um personagem de IA para conversar. Cada personagem tem uma personalidade distinta e responde de forma coerente com ela. Novos personagens são desbloqueados via sistema de coins.
+Cada usuário tem uma sala privada onde pode escolher um personagem de IA para conversar. Cada personagem tem uma personalidade distinta, mantém **memória de contexto** ao longo da conversa e responde de forma coerente com sua personalidade. Novos personagens são desbloqueados via sistema de coins.
 
 ### 2. Sistema de Coins e Afiliados
-O usuário ganha coins ao divulgar seu código de afiliado. Quando outra pessoa usa esse código ao se cadastrar, os coins são creditados automaticamente na conta de quem indicou. Os coins são usados para desbloquear novos personagens de IA na sala de desabafo.
+O usuário ganha coins ao divulgar seu código de afiliado. Quando outra pessoa usa esse código ao se cadastrar, os coins são creditados automaticamente na conta de quem indicou. Os coins são usados para desbloquear novos personagens de IA na sala de desabafo — mecânica central de gamificação da plataforma.
 
 ### 3. Diretório de Psicólogos + Acompanhamento
 Psicólogos se cadastram com seus dados profissionais (CRP, especialidades, contato). Usuários pesquisam e encontram profissionais dentro do app. Se o usuário quiser, pode autorizar um psicólogo específico a acessar seus relatos dentro da plataforma — autorização explícita, controlada e reversível.
+
+---
+
+## MVPs do Produto
+
+O desenvolvimento é dividido em duas entregas principais, priorizando primeiro a experiência do usuário final com os personagens de IA, e só depois as ferramentas voltadas ao psicólogo.
+
+### MVP 1 — Conversa com IA, Memória e Gamificação
+Foco no pilar de engajamento do usuário: a sala de desabafo e tudo que a cerca.
+* Chat com personagens de IA, com personalidade própria por personagem.
+* **Memória de conversa** — o personagem retém contexto relevante entre mensagens (e idealmente entre sessões), não apenas o histórico bruto.
+* Gamificação: sistema de coins, desbloqueio progressivo de novos personagens.
+* Sistema de afiliados: código de indicação, crédito automático de coins.
+* Autenticação e perfil básico do usuário.
+
+### MVP 2 — Ferramentas para Psicólogos e Acompanhamento
+Foco no pilar profissional, construído sobre a base do MVP 1.
+* Cadastro e perfil profissional do psicólogo (CRP, especialidades, bio, contato).
+* Diretório público de busca de psicólogos.
+* Relatos do usuário (criação, privacidade por padrão).
+* Autorização controlada de relatos para psicólogo (e revogação).
+* Dashboard/ferramentas de acompanhamento para o psicólogo acessar apenas os relatos autorizados.
+* *E mais funcionalidades a definir conforme o produto evolui.*
 
 ---
 
@@ -56,7 +79,7 @@ graph TB
     end
 
     subgraph AI["IA / LLM"]
-        CHAT[Chat com Personagem<br/>prompt com personalidade]
+        CHAT[Chat com Personagem<br/>prompt com personalidade + memoria]
         PROT[Sanitizacao<br/>anti prompt injection]
     end
 
@@ -152,7 +175,7 @@ O backend segue a **arquitetura modular padrão do NestJS** — a mesma estrutur
 | Validação | class-validator + class-transformer |
 | Testes | Jest |
 | Frontend | React Native, TypeScript, Expo |
-| IA / LLM | API de LLM externa (OpenAI ou similar) com prompt de personalidade por personagem |
+| IA / LLM | API de LLM externa (OpenAI ou similar) com prompt de personalidade por personagem + memória de contexto |
 | Infraestrutura (dev) | Docker, Docker Compose |
 | Infraestrutura (produção) | Neon (PostgreSQL serverless), Supabase (Auth/JWT + Storage), Vercel (deploy do frontend) |
 
@@ -167,6 +190,7 @@ O backend segue a **arquitetura modular padrão do NestJS** — a mesma estrutur
 | `characters` | id, nome, personalidade, descricao, custo_coins, ativo | Personagens de IA disponíveis na plataforma |
 | `user_characters` | user_id, character_id, desbloqueado_em | Personagens desbloqueados por cada usuario |
 | `chat_messages` | id, user_id, character_id, role, conteudo, criado_em | Historico de conversa (role: user ou assistant) |
+| `character_memory` | id, user_id, character_id, resumo, atualizado_em | *(MVP 1)* Fatos/resumos extraídos da conversa para dar memória de longo prazo ao personagem sem reprocessar todo o histórico bruto |
 | `reports` | id, user_id, conteudo, privacidade, criado_em | Privado por padrão |
 | `psychologists` | id, user_id, crp, especialidades, bio, contato, verificado | Perfil profissional |
 | `report_permissions` | report_id, psychologist_id, autorizado_em | Autorizacao explicita de acesso |
@@ -177,7 +201,7 @@ O backend segue a **arquitetura modular padrão do NestJS** — a mesma estrutur
 
 ### Usuário
 * Cadastro e login.
-* Sala de desabafo: escolhe um personagem e conversa via IA.
+* Sala de desabafo: escolhe um personagem e conversa via IA, com memória de contexto.
 * Desbloqueio de novos personagens com coins.
 * Ganho de coins ao indicar novos usuários via código de afiliado.
 * Criação de relatos pessoais (privados por padrão).
@@ -304,20 +328,22 @@ graph LR
 
 ## Roadmap
 
-### Fase 1 — MVP Core
+### MVP 1 — Conversa com IA, Memória e Gamificação
 - [ ] Setup do ambiente (Docker local / Neon + Supabase em produção)
 - [ ] Auth (registro com referral_code opcional, login via Supabase Auth)
 - [ ] Módulo de usuários (perfil, coins, código de afiliado)
 - [ ] Módulo de personagens (listagem, desbloqueio com coins)
 - [ ] Chat com personagem via LLM (sala de desabafo)
+- [ ] Memória de conversa por personagem (`character_memory`)
 - [ ] Sistema de afiliados (rastreamento de código, crédito de coins)
 
-### Fase 2 — Relatos e Psicólogos
+### MVP 2 — Ferramentas para Psicólogos e Acompanhamento
 - [ ] Módulo de relatos (CRUD, privacidade)
 - [ ] Cadastro e perfil de psicólogos
 - [ ] Busca pública de psicólogos
 - [ ] Autorização controlada de relatos para psicólogo
 - [ ] Teste de regressão de segurança do fluxo de autorização
+- [ ] Dashboard/ferramentas adicionais para o psicólogo (a definir)
 
 ### Fase 3 — Qualidade e Produção
 - [ ] Testes automatizados completos
@@ -333,4 +359,4 @@ graph LR
 
 ## Status Atual
 
-Projeto em desenvolvimento. Documentação e arquitetura definidas. Implementação iniciada pelo backend (NestJS + Prisma), com ambiente de produção planejado em Neon + Supabase + Vercel.
+Projeto em desenvolvimento. Documentação e arquitetura definidas. Implementação iniciada pelo backend (NestJS + Prisma), com ambiente de produção planejado em Neon + Supabase + Vercel. Prioridade atual: **MVP 1** (conversa com IA, memória e gamificação).
