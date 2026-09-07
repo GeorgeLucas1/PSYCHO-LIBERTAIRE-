@@ -3,7 +3,8 @@
 PSYCHO-LIBERTAIRE é uma plataforma de saúde mental que combina três pilares: uma **sala de desabafo privada com personagens de IA** para apoio emocional imediato, um **diretório de psicólogos** para conexão com profissionais habilitados, e um **sistema de acompanhamento controlado** onde o usuário autoriza o psicólogo a acessar seus relatos dentro do app. O projeto combina backend em TypeScript/NestJS, aplicativo mobile em React Native e integração com LLM para os personagens de IA.
 
 <p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
+<img width="1886" height="1120" alt="image" src="https://github.com/user-attachments/assets/a400f918-471b-4c76-9ca3-e81f9dabba16" />
+
 </p>
 
 ## Objetivos
