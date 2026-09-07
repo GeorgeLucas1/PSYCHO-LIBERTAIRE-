@@ -359,7 +359,7 @@ graph LR
 #CHANGELOG 
 
 Nova seção "MVPs do Produto", dividindo a entrega em:
-MVP 1 — chat com personagens de IA, memória de conversa, gamificação (coins), desbloqueio de personagens e sistema de afiliados.
+MVP 1 — chat com personagens de IA, memória de conversa, gamificação (coins), desbloqueio de personagens e sistema de afiliados,LAYOUT ADAPTÁVEL PARA TELAS MENORES COMO SMARTPHONES 
 MVP 2 — ferramentas para psicólogos: cadastro/perfil profissional, diretório público, relatos, autorização controlada e dashboard de acompanhamento.
 Tabela character_memory no Modelo de Dados, para dar memória de longo prazo aos personagens sem depender apenas do histórico bruto (chat_messages).
 Menção à memória de contexto no Pilar 1 ("Sala de Desabafo com Personagens IA"), na Stack Tecnológica (linha de IA/LLM) e no diagrama de arquitetura (nó CHAT).
