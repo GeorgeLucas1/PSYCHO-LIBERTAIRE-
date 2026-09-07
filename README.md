@@ -23,7 +23,7 @@ PSYCHO-LIBERTAIRE é uma plataforma de saúde mental que combina três pilares: 
 Cada usuário tem uma sala privada onde pode escolher um personagem de IA para conversar. Cada personagem tem uma personalidade distinta e responde de forma coerente com ela. Novos personagens são desbloqueados via sistema de coins.
 
 ### 2. Sistema de Coins e Afiliados
-O usuário ganha coins ao divulgar seu código de afiliado. Quando outra pessoa usa esse código ao se cadastrar, o coins são creditados automaticamente na conta de quem indicou. Os coins são usados para desbloquear novos personagens de IA na sala de desabafo.
+O usuário ganha coins ao divulgar seu código de afiliado. Quando outra pessoa usa esse código ao se cadastrar, os coins são creditados automaticamente na conta de quem indicou. Os coins são usados para desbloquear novos personagens de IA na sala de desabafo.
 
 ### 3. Diretório de Psicólogos + Acompanhamento
 Psicólogos se cadastram com seus dados profissionais (CRP, especialidades, contato). Usuários pesquisam e encontram profissionais dentro do app. Se o usuário quiser, pode autorizar um psicólogo específico a acessar seus relatos dentro da plataforma — autorização explícita, controlada e reversível.
@@ -153,103 +153,8 @@ O backend segue a **arquitetura modular padrão do NestJS** — a mesma estrutur
 | Testes | Jest |
 | Frontend | React Native, TypeScript, Expo |
 | IA / LLM | API de LLM externa (OpenAI ou similar) com prompt de personalidade por personagem |
-| Infraestrutura | Docker, Docker Compose |
-
----
-
-## Estrutura do Projeto
-
-### Backend
-
-```text
-backend/
-├── src/
-│   ├── auth/                          # Autenticacao JWT, guards, strategies (Passport)
-│   │   ├── dto/
-│   │   ├── guards/
-│   │   ├── strategies/
-│   │   ├── decorators/
-│   │   ├── auth.controller.ts
-│   │   ├── auth.service.ts
-│   │   └── auth.module.ts
-│   │
-│   ├── users/                         # Usuarios: perfil, coins, codigo de afiliado
-│   │   ├── dto/
-│   │   ├── entities/
-│   │   ├── users.controller.ts
-│   │   ├── users.service.ts
-│   │   └── users.module.ts
-│   │
-│   ├── reports/                       # Relatos: CRUD, privacidade, autorizacao
-│   │   ├── dto/
-│   │   ├── entities/
-│   │   ├── reports.controller.ts
-│   │   ├── reports.service.ts
-│   │   └── reports.module.ts
-│   │
-│   ├── characters/                    # Personagens de IA: listagem, desbloqueio, chat
-│   │   ├── dto/
-│   │   ├── entities/
-│   │   ├── characters.controller.ts
-│   │   ├── characters.service.ts
-│   │   └── characters.module.ts
-│   │
-│   ├── chat/                          # Conversa com personagem via LLM
-│   │   ├── dto/
-│   │   ├── chat.controller.ts
-│   │   ├── chat.service.ts            # Monta prompt com personalidade + chama LLM
-│   │   └── chat.module.ts
-│   │
-│   ├── psychologists/                 # Psicologos: cadastro, perfil, busca, acesso a relatos
-│   │   ├── dto/
-│   │   ├── entities/
-│   │   ├── psychologists.controller.ts
-│   │   ├── psychologists.service.ts
-│   │   └── psychologists.module.ts
-│   │
-│   ├── referrals/                     # Sistema de afiliados e coins
-│   │   ├── dto/
-│   │   ├── referrals.controller.ts
-│   │   ├── referrals.service.ts
-│   │   └── referrals.module.ts
-│   │
-│   ├── shared/                        # Guards globais, filtros de excecao, helpers
-│   ├── config/                        # Variaveis de ambiente (@nestjs/config)
-│   ├── prisma/                        # PrismaService + PrismaModule
-│   ├── app.module.ts
-│   └── main.ts
-├── prisma/
-│   └── schema.prisma
-├── test/
-├── Dockerfile
-├── docker-compose.yml
-├── nest-cli.json
-├── package.json
-├── tsconfig.json
-└── .env.example
-```
-
-### Frontend
-
-```text
-frontend/
-├── src/
-│   ├── components/
-│   ├── screens/
-│   │   ├── auth/
-│   │   ├── chat/           # Sala de desabafo + selecao de personagem
-│   │   ├── reports/        # Relatos e autorizacoes
-│   │   ├── psychologists/  # Busca e perfil de psicologos
-│   │   └── profile/        # Perfil, coins, codigo de afiliado
-│   ├── services/
-│   ├── hooks/
-│   ├── navigation/
-│   ├── types/
-│   └── utils/
-├── assets/
-├── package.json
-└── tsconfig.json
-```
+| Infraestrutura (dev) | Docker, Docker Compose |
+| Infraestrutura (produção) | Neon (PostgreSQL serverless), Supabase (Auth/JWT + Storage), Vercel (deploy do frontend) |
 
 ---
 
@@ -346,25 +251,46 @@ GET    /api/v1/psychologists/me/reports  # relatos autorizados para este psicolo
 
 ## Segurança
 
-* JWT com expiração curta e refresh token via Passport.
 * RBAC (USER, PROFESSIONAL, ADMIN) via Guards e decorators customizados.
-* Senhas com hash argon2, nunca em texto plano.
 * Rate limiting via `@nestjs/throttler`.
 * Validação global de entrada com `ValidationPipe` + class-validator.
 * Proteção contra SQL Injection via Prisma (queries parametrizadas).
 * Sanitização de input antes de qualquer chamada ao LLM (anti prompt injection).
 * Acesso a relatos sempre exige autorização explícita — nunca por padrão.
 * Coins nunca creditados duas vezes para o mesmo código de afiliado (idempotência no `ReferralsService`).
+* Em produção, autenticação/JWT e senhas passam a ser gerenciadas pelo **Supabase Auth** (ver seção "Ambiente de Produção" abaixo).
 
 ---
 
-## Ambientes
+## Ambiente de Produção
+
+O ambiente de produção é composto por três serviços gerenciados, substituindo o setup local baseado em Docker Compose:
+
+| Serviço | Função |
+| :--- | :--- |
+| **Neon** | Banco de dados PostgreSQL serverless, usado pelo backend (via Prisma) para armazenar usuários, relatos, personagens e psicólogos. Substitui o Postgres do Docker Compose local. |
+| **Supabase** | Responsável pela emissão e validação de JWT (Auth) e pelo armazenamento de arquivos (Storage) — por exemplo, fotos de perfil de psicólogos ou anexos de relatos. O fluxo de autenticação do backend (Passport/JWT) passa a validar tokens emitidos pelo Supabase Auth em vez de gerar seus próprios tokens localmente. |
+| **Vercel** | Hospeda e faz o deploy contínuo do frontend (build web/Expo), com deploy automático a cada push. |
+
+### Fluxo simplificado em produção
+
+```mermaid
+graph LR
+    FE[Frontend<br/>Vercel] -->|login/signup| SB[Supabase Auth]
+    SB -->|JWT| FE
+    FE -->|requisicoes com JWT| API[Backend NestJS]
+    API -->|valida JWT do Supabase| SB
+    API -->|CRUD via Prisma| NEON[(Neon PostgreSQL)]
+    FE -->|upload de arquivos| STORAGE[Supabase Storage]
+```
 
 | Ambiente | Status |
 | :--- | :--- |
-| Local | Docker Compose (único existente) |
-| Staging | Não existe ainda |
-| Produção | Não existe ainda |
+| Local | Docker Compose (Postgres + Redis locais) |
+| Staging | Neon (branch de staging) + Supabase (projeto de staging) + Vercel (preview deploy) |
+| Produção | Neon (PostgreSQL) + Supabase (Auth/JWT + Storage) + Vercel (frontend) |
+
+> **Observação:** o backend (NestJS) continua precisando de um host próprio para rodar a API (por exemplo Railway, Render ou Fly.io), já que o Vercel neste desenho cobre apenas o deploy do frontend. Ajuste esse ponto caso o backend já tenha um provedor definido.
 
 ---
 
@@ -379,8 +305,8 @@ GET    /api/v1/psychologists/me/reports  # relatos autorizados para este psicolo
 ## Roadmap
 
 ### Fase 1 — MVP Core
-- [ ] Setup do ambiente (Docker, Postgres, Redis)
-- [ ] Auth (registro com referral_code opcional, login, JWT)
+- [ ] Setup do ambiente (Docker local / Neon + Supabase em produção)
+- [ ] Auth (registro com referral_code opcional, login via Supabase Auth)
 - [ ] Módulo de usuários (perfil, coins, código de afiliado)
 - [ ] Módulo de personagens (listagem, desbloqueio com coins)
 - [ ] Chat com personagem via LLM (sala de desabafo)
@@ -396,6 +322,8 @@ GET    /api/v1/psychologists/me/reports  # relatos autorizados para este psicolo
 ### Fase 3 — Qualidade e Produção
 - [ ] Testes automatizados completos
 - [ ] CI/CD
+- [ ] Deploy do backend em host próprio (Railway/Render/Fly.io) conectado ao Neon
+- [ ] Deploy do frontend na Vercel com preview deploys
 - [ ] Observabilidade (logging estruturado, métricas)
 - [ ] Testes de segurança
 - [ ] Revisão de conformidade legal (LGPD)
@@ -405,4 +333,4 @@ GET    /api/v1/psychologists/me/reports  # relatos autorizados para este psicolo
 
 ## Status Atual
 
-Projeto em desenvolvimento. Documentação e arquitetura definidas. Implementação iniciada pelo backend (NestJS + Prisma).****
+Projeto em desenvolvimento. Documentação e arquitetura definidas. Implementação iniciada pelo backend (NestJS + Prisma), com ambiente de produção planejado em Neon + Supabase + Vercel.
