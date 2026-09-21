@@ -441,21 +441,3 @@ graph LR
 * **Regressão de segurança obrigatória**: teste que garante que psicólogo nunca acessa relato não autorizado — deve passar antes de qualquer PR que toque no fluxo de permissões.
 
 
-## CHANGELOG
-
-**Atual**
-* Removida qualquer menção a vozes/personagens de anime — as vozes agora são perfis neutros do serviço de TTS.
-* **TTS passa a ser uma API dockerizada** em container próprio, com endpoints `/tts` e `/health`, consumida pelo backend e protegida por rate limit.
-* **Chat-bot documentado**: construído com **agno-chat** + **Groq (Groq Console/API)**, escrito em **Python** e empacotado como **API em Docker**.
-* Nova seção "Serviços de IA" descrevendo chat-bot e TTS como containers independentes do backend.
-* Adicionado **rate limiting no chat e no TTS** (`@nestjs/throttler` com storage em Redis, limite por usuário e por IP, resposta `429`), com teste dedicado.
-* Nova seção "Ambiente Local (Docker Compose)" com a lista de containers e variáveis de ambiente.
-* Novo diagrama de sequência do fluxo de chat (rate limit → memória → sanitização → chat-bot → TTS).
-* Endpoint `POST /api/v1/chat/:character_id/speak` adicionado à API.
-* Campo `voz_tts` adicionado à tabela `characters`.
-* Diagramas de arquitetura e de produção atualizados com os containers de chat-bot e TTS.
-
-**Anterior**
-* Nova seção "MVPs do Produto": MVP 1 (chat com personagens de IA, memória de conversa, gamificação, desbloqueio de personagens, sistema de afiliados e layout adaptável para smartphones) e MVP 2 (ferramentas para psicólogos: cadastro/perfil profissional, diretório público, relatos, autorização controlada e dashboard de acompanhamento).
-* Tabela `character_memory` no Modelo de Dados.
-* Menção à memória de contexto no Pilar 1, na Stack Tecnológica e no diagrama de arquitetura.
